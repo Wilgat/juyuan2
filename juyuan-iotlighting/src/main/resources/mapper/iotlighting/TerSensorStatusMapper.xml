@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.TerSensorStatusMapper">
+
+    <resultMap type="TerSensorStatus" id="TerSensorStatusResult">
+        <result property="terSn" column="ter_sn"/>
+        <result property="sensorType" column="sensor_type"/>
+        <result property="moduleNumber" column="module_number"/>
+        <result property="data" column="data"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="sensorStatus" column="sensor_status"/>
+        <result property="sensorConfig" column="sensor_config"/>
+        <result property="upc" column="upc"/>
+        <result property="gateway" column="gateway"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="pointName" column="point_name"/>
+        <result property="block" column="block"/>
+        <result property="zone" column="zone"/>
+        <result property="zoneSub" column="zone_sub"/>
+    </resultMap>
+
+    <sql id="selectTerSensorStatusVo">
+        select tss.ter_sn,
+               tss.sensor_type,
+               tss.data,
+               tss.updated_time,
+               tss.sensor_status,
+               tss.sensor_config,
+               tss.module_number,
+               ti.upc,
+               ti.gateway,
+               bi.id   as building_id,
+               bi.name as building_name,
+               bfi.floor_name,
+               tbpi.created_time,
+               bpi.point_name,
+               bpi.block,
+               bpi.zone,
+               bpi.zone_sub
+        from ter_sensor_status tss
+                 left join ter_info ti on (ti.sn = tss.ter_sn)
+                 left join ter_building_point_info tbpi on (tss.ter_sn = tbpi.ter_sn)
+                 left join building_point_info bpi on (tbpi.point_id = bpi.id)
+                 left join building_floor_info bfi on (bpi.floor_id = bfi.id)
+                 left join building_info bi on (bpi.building_id = bi.id)
+                 inner join sys_dept d on (bi.dept_id = d.dept_id)
+    </sql>
+
+    <select id="selectTerSensorStatusList" parameterType="TerSensorStatus" resultMap="TerSensorStatusResult">
+        select t.* from (
+        <include refid="selectTerSensorStatusVo"/>
+        <where>
+            <if test="terSn != null  and terSn != ''">and tss.ter_sn = #{terSn}</if>
+            <if test="sensorStatus != null  and sensorStatus != ''">and tss.sensor_status = #{sensorStatus}</if>
+            <if test="createdTime != null ">and tbpi.created_time = #{createdTime}</if>
+            <if test="buildingId != null">and bpi.building_id = #{buildingId}</if>
+            <if test="floorId != null">and bfi.id = #{floorId}</if>
+            <if test="block != null">and bpi.block = #{block}</if>
+            <if test="zone != null">and bpi.zone = #{zone}</if>
+            <if test="zoneSub != null">and bpi.zone_sub = #{zoneSub}</if>
+            <if test="sensorType != null and sensorType!=''">and tss.sensor_type = #{sensorType}</if>
+            <if test="createdTimeStart != null">and DATE_FORMAT(tbpi.created_time,'%Y-%m-%d') <![CDATA[ >= ]]>
+                STR_TO_DATE(#{createdTimeStart},
+                '%Y-%m-%d')
+            </if>
+            <if test="createdTimeEnd != null">and DATE_FORMAT(tbpi.created_time,'%Y-%m-%d') <![CDATA[ <= ]]>
+                STR_TO_DATE(#{createdTimeEnd},
+                '%Y-%m-%d')
+            </if>
+        </where>
+        ${params.dataScope}
+        <if test="checkSensorType != null and checkSensorType !=''">
+            order by
+            CASE
+            WHEN tss.sensor_type=#{checkSensorType} THEN 1
+            ELSE 2
+            END
+        </if>) t
+    </select>
+
+    <select id="selectTerSensorStatusListForTask" parameterType="TerSensorStatus" resultMap="TerSensorStatusResult">
+        <include refid="selectTerSensorStatusVo"/>
+        <where>
+            <if test="terSn != null  and terSn != ''">and tss.ter_sn = #{terSn}</if>
+            <if test="sensorStatus != null  and sensorStatus != ''">and tss.sensor_status = #{sensorStatus}</if>
+            <if test="createdTime != null ">and tbpi.created_time = #{createdTime}</if>
+            <if test="buildingId != null">and bpi.building_id = #{buildingId}</if>
+            <if test="sensorType != null and sensorType !=''">
+                and tss.sensor_type = #{sensorType}
+            </if>
+        </where>
+    </select>
+
+
+    <select id="selectTerSensorStatusListAlarm" parameterType="TerSensorStatus" resultMap="TerSensorStatusResult">
+        select bi.id as building_id, bfi.id as floor_id, tss.ter_sn, tss.sensor_type, tss.data, tss.updated_time,
+        tss.sensor_status,tss.module_number, bfi.floor_name, bi.name as building_name
+        from ter_sensor_status tss
+        left join ter_building_point_info tbpi on (tss.ter_sn = tbpi.ter_sn)
+        left join building_point_info bpi on (tbpi.point_id = bpi.id)
+        left join building_floor_info bfi on (bpi.floor_id = bfi.id)
+        left join building_info bi on (bpi.building_id = bi.id)
+        where tss.deal_flag='0' and tss.sensor_status='alarm'
+        <if test="terSn != null  and terSn != ''">and tss.ter_sn = #{terSn}</if>
+        <if test="sensorType != null  and sensorType != ''">and tss.sensor_type = #{sensorType}</if>
+    </select>
+
+
+    <select id="selectTerSensorStatusByTerSn" parameterType="String" resultMap="TerSensorStatusResult">
+        <include refid="selectTerSensorStatusVo"/>
+        where tss.ter_sn = #{terSn}
+    </select>
+    <select id="selectTerSensor" resultMap="TerSensorStatusResult" parameterType="TerSensorStatus">
+        <include refid="selectTerSensorStatusVo"/>
+        <where>
+            <if test="terSn != null  and terSn != ''">and tss.ter_sn = #{terSn}</if>
+            <if test="sensorType != null  and sensorType != ''">and tss.sensor_type = #{sensorType}</if>
+        </where>
+        for update
+    </select>
+    <select id="selectLightStatus" resultType="java.lang.String">
+        select status
+        from ter_light_status
+        where ter_sn = #{terSn}
+    </select>
+
+    <insert id="insertLightStatus">
+        insert into ter_light_status (id, ter_sn, status)
+        values (#{id}, #{terSn}, #{status})
+    </insert>
+
+    <update id="updateLightStatus">
+        update ter_light_status
+        set status=#{status}
+        where ter_sn = #{terSn}
+    </update>
+
+    <delete id="deleteLightStatus">
+        delete
+        from ter_light_status
+        where ter_sn = #{terSn}
+    </delete>
+
+    <insert id="insertTerSensorStatus" parameterType="TerSensorStatus">
+        insert into ter_sensor_status
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="terSn != null">ter_sn,</if>
+            <if test="sensorType != null">sensor_type,</if>
+            <if test="moduleNumber != null">module_number,</if>
+            <if test="data != null">data,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="sensorStatus != null">sensor_status,</if>
+            <if test="sensorConfig != null">sensor_config,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="terSn != null">#{terSn},</if>
+            <if test="sensorType != null">#{sensorType},</if>
+            <if test="moduleNumber != null">#{moduleNumber},</if>
+            <if test="data != null">#{data},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="sensorStatus != null">#{sensorStatus},</if>
+            <if test="sensorConfig != null">#{sensorConfig},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTerSensorStatus" parameterType="TerSensorStatus">
+        update ter_sensor_status
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sensorType != null">sensor_type = #{sensorType},</if>
+            <if test="data != null">data = #{data},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="sensorStatus != null">sensor_status = #{sensorStatus},</if>
+            <if test="sensorConfig != null">
+                <choose>
+                    <when test="sensorType == 'flooding' and terSnList != null and terSnList.size() > 1">
+                        sensor_config = CONCAT(SUBSTRING(sensor_config, 1, LENGTH(sensor_config) - 2),
+                        SUBSTRING(#{sensorConfig}, LENGTH(#{sensorConfig}) - 1, LENGTH(#{sensorConfig}))),
+                    </when>
+                    <otherwise>
+                        sensor_config = #{sensorConfig},
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="dealFlag != null">deal_flag = #{dealFlag},</if>
+        </trim>
+        <where>
+            <if test="terSn != null  and terSn != ''">and ter_sn = #{terSn}</if>
+            <if test="sensorType != null  and sensorType != ''">and sensor_type = #{sensorType}</if>
+            <if test="terSnList != null">
+                and ter_sn in
+                <foreach item="terSn" collection="terSnList" open="(" separator="," close=")">
+                    #{terSn}
+                </foreach>
+            </if>
+        </where>
+    </update>
+    <update id="updateSertTerSensorStatus" parameterType="TerSensorStatus">
+        insert into ter_sensor_status (ter_sn, sensor_type, module_number, data, updated_time, sensor_status)
+        values (#{terSn},
+                #{sensorType},
+                #{moduleNumber},
+                #{data},
+                #{updatedTime},
+                #{sensorStatus})
+        ON DUPLICATE key update sensor_type   = values(sensor_type),
+                                module_number = values(module_number),
+                                data          = values(data),
+                                updated_time  = values(updated_time),
+                                sensor_status = values(sensor_status),
+                                deal_flag     = values(deal_flag)
+    </update>
+
+    <delete id="deleteTerSensorStatusByTerSn" parameterType="String">
+        delete
+        from ter_sensor_status
+        where ter_sn = #{terSn}
+    </delete>
+
+    <delete id="deleteTerSensorStatusByTerSns" parameterType="String">
+        delete from ter_sensor_status where ter_sn in
+        <foreach item="terSn" collection="array" open="(" separator="," close=")">
+            #{terSn}
+        </foreach>
+    </delete>
+    <delete id="deleteTerLightStatusByTerSn">
+        delete
+        from ter_light_status
+        where ter_sn = #{terSn}
+    </delete>
+
+    <select id="getTerLightStatusUpdateTime" resultType="java.util.Date">
+        select max(diagnosis_update_time)
+        from ter_sensor_status
+    </select>
+</mapper>

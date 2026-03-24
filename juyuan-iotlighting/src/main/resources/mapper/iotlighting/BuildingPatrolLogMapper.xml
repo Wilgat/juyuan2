@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.BuildingPatrolLogMapper">
+
+    <resultMap type="BuildingPatrolLog" id="BuildingPatrolLogResult">
+        <result property="id" column="id"/>
+        <result property="routeName" column="route_name"/>
+        <result property="routeId" column="route_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="startTime" column="start_time"/>
+        <result property="completeTime" column="complete_time"/>
+        <result property="timeCount" column="time_count"/>
+        <result property="patrolPointTotal" column="patrol_point_total"/>
+        <result property="patrolPointComplete" column="patrol_point_complete"/>
+        <result property="createTime" column="create_time"/>
+        <result property="completeFlag" column="complete_flag"/>
+        <result property="nickName" column="nick_name"/>
+    </resultMap>
+
+    <sql id="selectBuildingPatrolLogVo">
+        select bpl.id,
+               bpl.route_name,
+               bpl.route_id,
+               bpl.user_id,
+               bpl.start_time,
+               bpl.complete_time,
+               bpl.time_count,
+               bpl.patrol_point_total,
+               bpl.patrol_point_complete,
+               bpl.create_time,
+               bpl.complete_flag,
+               su.nick_name
+        from building_patrol_log bpl left join sys_user su on(bpl.user_id=su.user_id)
+        inner join sys_dept d on(su.dept_id=d.dept_id)
+    </sql>
+
+    <select id="selectBuildingPatrolLogList" parameterType="BuildingPatrolLog" resultMap="BuildingPatrolLogResult">
+        <include refid="selectBuildingPatrolLogVo"/>
+        <where>
+            <if test="routeName != null ">and bpl.route_name like concat('%', #{routeName}, '%')</if>
+            <if test="routeId != null ">and bpl.route_id = #{routeId}</if>
+            <if test="userId != null ">and bpl.user_id = #{userId}</if>
+            <if test="startTime != null ">and bpl.start_time = #{startTime}</if>
+            <if test="completeTime != null ">and bpl.complete_time = #{completeTime}</if>
+            <if test="patrolPointTotal != null ">and bpl.patrol_point_total = #{patrolPointTotal}</if>
+            <if test="patrolPointComplete != null ">and bpl.patrol_point_complete = #{patrolPointComplete}</if>
+            <if test="completeFlag != null  and completeFlag != ''">and bpl.complete_flag = #{completeFlag}</if>
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <select id="selectBuildingPatrolLogById" parameterType="Long" resultMap="BuildingPatrolLogResult">
+        <include refid="selectBuildingPatrolLogVo"/>
+        where id = #{id}
+    </select>
+    <select id="selectBuildingPatrolLogByRouteId" parameterType="Long" resultMap="BuildingPatrolLogResult">
+        <include refid="selectBuildingPatrolLogVo"/>
+        where bpl.route_id = #{routeId} and bpl.complete_flag='0'
+    </select>
+
+    <insert id="insertBuildingPatrolLog" parameterType="BuildingPatrolLog" keyProperty="id">
+        insert into building_patrol_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="routeName != null">route_name,</if>
+            <if test="routeId != null">route_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="completeTime != null">complete_time,</if>
+            <if test="timeCount != null">time_count,</if>
+            <if test="patrolPointTotal != null">patrol_point_total,</if>
+            <if test="patrolPointComplete != null">patrol_point_complete,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="completeFlag != null">complete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="routeName != null">#{routeName},</if>
+            <if test="routeId != null">#{routeId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="completeTime != null">#{completeTime},</if>
+            <if test="timeCount != null">#{timeCount},</if>
+            <if test="patrolPointTotal != null">#{patrolPointTotal},</if>
+            <if test="patrolPointComplete != null">#{patrolPointComplete},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="completeFlag != null">#{completeFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateBuildingPatrolLog" parameterType="BuildingPatrolLog">
+        update building_patrol_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="routeName != null">route_name = #{routeName},</if>
+            <if test="routeId != null">route_id = #{routeId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            <if test="patrolPointTotal != null">patrol_point_total = #{patrolPointTotal},</if>
+            <if test="patrolPointComplete != null">patrol_point_complete = #{patrolPointComplete},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="completeFlag != null">complete_flag = #{completeFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBuildingPatrolLogById" parameterType="Long">
+        delete
+        from building_patrol_log
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteBuildingPatrolLogByIds" parameterType="String">
+        delete from building_patrol_log where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

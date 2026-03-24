@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.TerAlertMapper">
+
+    <insert id="insertTerAlert" parameterType="TerAlert" keyProperty="id">
+        insert into ter_alert
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="terSn != null">ter_sn,</if>
+            <if test="sensorType != null">sensor_type,</if>
+            <if test="data != null">data,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="dealFlag != null">deal_flag,</if>
+            <if test="delFlag != null">del_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="terSn != null">#{terSn},</if>
+            <if test="sensorType != null">#{sensorType},</if>
+            <if test="data != null">#{data},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="dealFlag != null">#{dealFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTerAlert" parameterType="TerAlert">
+        update ter_alert
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="terSn != null">ter_sn = #{terSn},</if>
+            <if test="sensorType != null">sensor_type = #{sensorType},</if>
+            <if test="data != null">data = #{data},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="dealTime != null">deal_time = #{dealTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="dealFlag != null">deal_flag = #{dealFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+    <update id="updateTerAlertBatch" parameterType="Long">
+        update ter_alert set deal_flag = '1',deal_time = now() where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+
+    <resultMap type="TerAlert" id="TerAlertResult">
+        <result property="id" column="id"/>
+        <result property="terSn" column="ter_sn"/>
+        <result property="sensorType" column="sensor_type"/>
+        <result property="data" column="data"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="createdTimeDate" column="created_time_date"/>
+        <result property="createdTimeTime" column="created_time_time"/>
+        <result property="dealTime" column="deal_time"/>
+        <result property="sensorStatus" column="sensor_status"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="floorId" column="floor_id"/>
+        <result property="block" column="block"/>
+        <result property="zone" column="zone"/>
+        <result property="zoneSub" column="zone_sub"/>
+        <result property="pointName" column="point_name"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="dealFlag" column="deal_flag"/>
+        <result property="pointX" column="point_x"/>
+        <result property="pointY" column="point_y"/>
+        <result property="backgroundImgId" column="background_img_id"/>
+        <result property="floorLength" column="floor_length"/>
+        <result property="floorWidth" column="floor_width"/>
+    </resultMap>
+    <select id="selectTerAlertList" resultType="com.ruoyi.iotlighting.domain.TerAlert" resultMap="TerAlertResult">
+        select t.* from (select ta.id,
+        ta.ter_sn,
+        ta.sensor_type,
+        ta.created_time,
+        ta.created_time as created_time_date,
+        ta.created_time as created_time_time,
+        ta.del_flag,
+        ta.deal_flag,
+        ta.deal_time,
+        ta.data,
+        bpi.building_id,
+        bi.name as building_name,
+        bpi.floor_id,
+        bpi.point_name,
+        bpi.point_x,
+        bpi.point_y,
+        bpi.block,
+        bpi.zone,
+        bpi.zone_sub,
+        bfi.floor_name,
+        bfi.background_img_id,
+        bfi.floor_length,
+        bfi.floor_width
+        from ter_alert ta
+        LEFT JOIN ter_info ti on (ta.ter_sn = ti.sn)
+        LEFT JOIN ter_building_point_info tbpi on (ti.sn = tbpi.ter_sn)
+        left join building_point_info bpi on (bpi.id = tbpi.point_id and bpi.del_flag='0')
+        left join building_floor_info bfi on (bfi.id = bpi.floor_id)
+        left join building_info bi on(bfi.building_id = bi.id)
+        left join ter_gateway tg on(ti.gateway = tg.sn)
+        inner join sys_dept d on(bi.dept_id=d.dept_id)
+        where 1=1
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        <if test="terSn != null  and terSn != ''">and ta.ter_sn = #{terSn}</if>
+        <if test="dealFlag != null  and dealFlag != ''">and ta.deal_flag = #{dealFlag}</if>
+        <if test="sensorType != null  and sensorType != ''">and ta.sensor_type = #{sensorType}</if>
+        <if test="buildingId != null">and bpi.building_id = #{buildingId}</if>
+        <if test="floorId != null">and bpi.floor_id = #{floorId}</if>
+        <if test="block != null">and bpi.block = #{block}</if>
+        <if test="zone != null">and bpi.zone = #{zone}</if>
+        <if test="zoneSub != null">and bpi.zone_sub = #{zoneSub}</if>
+        <if test="createdTime != null">and DATE_FORMAT(ta.created_time,'%Y-%m-%d') = STR_TO_DATE(#{createdTime},
+            '%Y-%m-%d')
+        </if>
+        <if test="createdTimeStart != null">and DATE_FORMAT(ta.created_time,'%Y-%m-%d') <![CDATA[ >= ]]>
+            STR_TO_DATE(#{createdTimeStart},
+            '%Y-%m-%d')
+        </if>
+        <if test="createdTimeEnd != null">and DATE_FORMAT(ta.created_time,'%Y-%m-%d') <![CDATA[ <= ]]>
+            STR_TO_DATE(#{createdTimeEnd},
+            '%Y-%m-%d')
+        </if>
+        <if test="alertSensorType != null and alertSensorType.length > 0">
+            and ta.sensor_type in
+            <foreach item="sensorType" collection="alertSensorType" open="(" separator="," close=")">
+                #{sensorType}
+            </foreach>
+        </if>
+        order by
+        <if test="checkSensorType != null and checkSensorType !=''">
+            CASE
+            WHEN ta.sensor_type=#{checkSensorType} THEN 1
+            ELSE 2
+            END,
+        </if>
+        ta.deal_flag asc, ta.created_time desc) t
+    </select>
+
+
+    <resultMap type="TerAlertCount" id="TerAlertCountResult">
+        <result property="sensorType" column="sensor_type"/>
+        <result property="count" column="count"/>
+    </resultMap>
+    <select id="selectTerAlertCount" parameterType="TerAlertCount" resultMap="TerAlertCountResult">
+        select ta.sensor_type, count(1) as count
+        from ter_alert ta
+        left join ter_building_point_info tbpi on (ta.ter_sn = tbpi.ter_sn)
+        left join building_point_info bpi on (tbpi.point_id = bpi.id)
+        left join building_info bi on (bpi.building_id = bi.id)
+        inner join sys_dept d on (bi.dept_id = d.dept_id)
+        where ta.deal_flag = '0'
+        <if test="alertSensorType != null">
+            and ta.sensor_type in
+            <foreach item="sensorType" collection="alertSensorType" open="(" separator="," close=")">
+                #{sensorType}
+            </foreach>
+        </if>
+        ${params.dataScope}
+        group by ta.sensor_type
+    </select>
+
+
+    <select id="selectTerAlertListNotLogin" resultType="com.ruoyi.iotlighting.domain.TerAlert"
+            resultMap="TerAlertResult">
+        select ta.id,
+        ta.ter_sn,
+        ta.sensor_type,
+        ta.created_time,
+        ta.del_flag,
+        ta.deal_flag,
+        ta.deal_time,
+        ta.data,
+        bpi.building_id,
+        bi.name as building_name,
+        bpi.floor_id,
+        bpi.point_name,
+        bpi.point_x,
+        bpi.point_y,
+        bfi.floor_name
+        from ter_alert ta
+        LEFT JOIN ter_info ti on (ta.ter_sn = ti.sn)
+        LEFT JOIN ter_building_point_info tbpi on (ti.sn = tbpi.ter_sn)
+        left join building_point_info bpi on (bpi.id = tbpi.point_id and bpi.del_flag='0')
+        left join building_floor_info bfi on (bfi.id = bpi.floor_id)
+        left join building_info bi on(bfi.building_id = bi.id)
+        left join ter_gateway tg on(ti.gateway = tg.sn)
+        inner join sys_dept d on(bi.dept_id=d.dept_id)
+        where 1=1
+        <if test="id != null">and ta.id= #{id}</if>
+        <if test="terSn != null  and terSn != ''">and ta.ter_sn = #{terSn}</if>
+        <if test="dealFlag != null  and dealFlag != ''">and ta.deal_flag = #{dealFlag}</if>
+        <if test="sensorType != null  and sensorType != ''">and ta.sensor_type = #{sensorType}</if>
+        <if test="buildingId != null">and bpi.building_id = #{buildingId}</if>
+        <if test="floorId != null">and bpi.floor_id = #{floorId}</if>
+        <if test="createdTime != null">and DATE_FORMAT(ta.created_time,'%Y-%m-%d') = STR_TO_DATE(#{createdTime},
+            '%Y-%m-%d')
+        </if>
+        order by ta.deal_flag asc, ta.created_time desc
+    </select>
+
+</mapper>

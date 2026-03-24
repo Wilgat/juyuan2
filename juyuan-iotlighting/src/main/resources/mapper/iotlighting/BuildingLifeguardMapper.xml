@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.BuildingLifeguardMapper">
+
+    <resultMap type="BuildingLifeguard" id="BuildingLifeguardResult">
+        <result property="id" column="id"/>
+        <result property="pointId" column="point_id"/>
+        <result property="userIdOne" column="user_id_one"/>
+        <result property="userIdTwo" column="user_id_two"/>
+        <result property="userIdThree" column="user_id_three"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="pointName" column="point_name"/>
+        <result property="block" column="block"/>
+        <result property="zone" column="zone"/>
+        <result property="zoneSub" column="zone_sub"/>
+        <result property="terSn" column="ter_sn"/>
+    </resultMap>
+
+    <sql id="selectBuildingLifeguardVo">
+        select bl.id,
+               bpi.id  as point_id,
+               bl.user_id_one,
+               bl.user_id_two,
+               bl.user_id_three,
+               bi.name as building_name,
+               bfi.floor_name,
+               bpi.point_name,
+               bpi.block,
+               bpi.zone,
+               bpi.zone_sub,
+               tss.ter_sn
+        from ter_sensor_status tss
+                 left join ter_building_point_info tbpi on (tss.ter_sn = tbpi.ter_sn and tss.sensor_type = 'post')
+                 left join building_point_info bpi on (tbpi.point_id = bpi.id)
+                 left join building_floor_info bfi on (bpi.floor_id = bfi.id)
+                 left join building_info bi on (bfi.building_id = bi.id)
+                 left join building_lifeguard bl on (bl.point_id = bpi.id)
+                 inner join sys_dept d on (bi.dept_id = d.dept_id)
+    </sql>
+
+    <select id="selectBuildingLifeguardList" parameterType="BuildingLifeguard" resultMap="BuildingLifeguardResult">
+        <include refid="selectBuildingLifeguardVo"/>
+        <where>
+            <if test="pointId != null ">and bpi.point_id = #{pointId}</if>
+            <if test="userIdOne != null ">and bl.user_id_one = #{userIdOne}</if>
+            <if test="userIdTwo != null ">and bl.user_id_two = #{userIdTwo}</if>
+            <if test="userIdThree != null ">and bl.user_id_three = #{userIdThree}</if>
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <select id="selectBuildingLifeguardById" parameterType="Long" resultMap="BuildingLifeguardResult">
+        <include refid="selectBuildingLifeguardVo"/>
+        where bl.id = #{id}
+    </select>
+
+    <insert id="insertBuildingLifeguard" parameterType="BuildingLifeguard" useGeneratedKeys="true" keyProperty="id">
+        insert into building_lifeguard
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="pointId != null">point_id,</if>
+            <if test="userIdOne != null">user_id_one,</if>
+            <if test="userIdTwo != null">user_id_two,</if>
+            <if test="userIdThree != null">user_id_three,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="pointId != null">#{pointId},</if>
+            <if test="userIdOne != null">#{userIdOne},</if>
+            <if test="userIdTwo != null">#{userIdTwo},</if>
+            <if test="userIdThree != null">#{userIdThree},</if>
+        </trim>
+    </insert>
+
+    <update id="updateBuildingLifeguard" parameterType="BuildingLifeguard">
+        update building_lifeguard
+        <trim prefix="SET" suffixOverrides=",">
+            user_id_one = #{userIdOne},
+            user_id_two = #{userIdTwo},
+            user_id_three = #{userIdThree}
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBuildingLifeguardById" parameterType="Long">
+        delete
+        from building_lifeguard
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteBuildingLifeguardByIds" parameterType="String">
+        delete from building_lifeguard where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

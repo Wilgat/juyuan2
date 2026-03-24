@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.BuildingPatrolMapper">
+
+    <resultMap type="BuildingPatrol" id="BuildingPatrolResult">
+        <result property="id" column="id"/>
+        <result property="routeId" column="route_id"/>
+        <result property="routeName" column="route_name"/>
+        <result property="patrolNumber" column="patrol_number"/>
+        <result property="waitTime" column="wait_time"/>
+        <result property="tolerantTime" column="tolerant_time"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="block" column="block"/>
+        <result property="zone" column="zone"/>
+        <result property="zoneSub" column="zone_sub"/>
+        <result property="pointName" column="point_name"/>
+        <result property="pointId" column="point_id"/>
+        <result property="terSn" column="ter_sn"/>
+        <result property="gateway" column="gateway"/>
+    </resultMap>
+
+    <sql id="selectBuildingPatrolVo">
+        select bp.id,
+               bp.route_id,
+               br.route_name,
+               bp.patrol_number,
+               bp.wait_time,
+               bp.tolerant_time,
+               bpi.building_id,
+               bi.name as building_name,
+               bfi.floor_name,
+               bpi.id  as point_id,
+               bpi.block,
+               bpi.zone,
+               bpi.zone_sub,
+               bpi.point_name,
+               tbpi.ter_sn,
+               ti.gateway
+        from building_point_info bpi
+                 left join building_floor_info bfi on (bpi.floor_id = bfi.id)
+                 left join building_patrol bp on (bpi.id = bp.point_id and bp.route_id = #{routeId})
+                 left join building_route br on (bp.route_id = br.id)
+                 left join building_info bi on (bpi.building_id = bi.id)
+                 left join ter_building_point_info tbpi on (tbpi.point_id = bpi.id)
+                 inner join ter_info ti on (tbpi.ter_sn = ti.sn)
+                 inner join ter_sensor_status tss on (tbpi.ter_sn = tss.ter_sn and tss.sensor_type = 'patrol')
+                 inner join sys_dept d on (bi.dept_id = d.dept_id)
+    </sql>
+
+    <select id="selectBuildingPatrolList" parameterType="BuildingPatrol" resultMap="BuildingPatrolResult">
+        <include refid="selectBuildingPatrolVo"/>
+        <where>
+            <if test="buildingId != null ">and bpi.building_id = #{buildingId}</if>
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <select id="selectActiveBuildingPatrolList" parameterType="BuildingPatrol" resultMap="BuildingPatrolResult">
+        <include refid="selectBuildingPatrolVo"/>
+        <where>
+            <if test="routeId != null ">and bp.route_id = #{routeId}</if>
+            <if test="buildingId != null ">and bpi.building_id = #{buildingId}</if>
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <select id="selectBuildingPatrolById" parameterType="Long" resultMap="BuildingPatrolResult">
+        <include refid="selectBuildingPatrolVo"/>
+        where id = #{id}
+    </select>
+
+
+    <insert id="insertBuildingPatrol" parameterType="BuildingPatrol" useGeneratedKeys="true" keyProperty="id">
+        insert into building_patrol
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="routeId != null">route_id,</if>
+            <if test="pointId != null">point_id,</if>
+            <if test="waitTime != null">wait_time,</if>
+            <if test="patrolNumber != null">patrol_number,</if>
+            <if test="tolerantTime != null">tolerant_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="routeId != null">#{routeId},</if>
+            <if test="pointId != null">#{pointId},</if>
+            <if test="waitTime != null">#{waitTime},</if>
+            <if test="patrolNumber != null">#{patrolNumber},</if>
+            <if test="tolerantTime != null">#{tolerantTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateBuildingPatrol" parameterType="BuildingPatrol">
+        update building_patrol
+        set wait_time     = #{waitTime},
+            patrol_number = #{patrolNumber},
+            tolerant_time = #{tolerantTime}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBuildingPatrolById" parameterType="Long">
+        delete
+        from building_patrol
+        where route_id = #{routeId}
+    </delete>
+
+    <delete id="deleteBuildingPatrolByIds" parameterType="String">
+        delete from building_patrol where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteBuildingPatrolByTerSn">
+        delete
+        from building_patrol
+        where point_id = (select point_id from ter_building_point_info where ter_sn = #{terSn})
+    </delete>
+</mapper>

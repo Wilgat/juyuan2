@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.TerDataLogMapper">
+
+    <resultMap type="TerDataLog" id="TerDataLogResult">
+        <result property="id" column="id"/>
+        <result property="terSn" column="ter_sn"/>
+        <result property="sensorType" column="sensor_type"/>
+        <result property="data" column="data"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="sensorStatus" column="sensor_status"/>
+    </resultMap>
+
+    <sql id="selectTerDataLogVo">
+        select id, ter_sn, sensor_type, data, created_time, del_flag, sensor_status
+        from ter_data_log
+    </sql>
+
+    <select id="selectTerDataLogList" parameterType="TerDataLog" resultMap="TerDataLogResult">
+        <include refid="selectTerDataLogVo"/>
+        <where>
+            <if test="terSn != null  and terSn != ''">and ter_sn = #{terSn}</if>
+            <if test="sensorType != null  and sensorType != ''">and sensor_type = #{sensorType}</if>
+            <if test="data != null  and data != ''">and data = #{data}</if>
+            <if test="createdTime != null ">and created_time = #{createdTime}</if>
+            <if test="sensorStatus != null  and sensorStatus != ''">and sensor_status = #{sensorStatus}</if>
+        </where>
+    </select>
+
+    <select id="selectTerDataLogById" parameterType="Long" resultMap="TerDataLogResult">
+        <include refid="selectTerDataLogVo"/>
+        where id = #{id}
+    </select>
+
+
+    <insert id="insertTerDataLog" parameterType="TerDataLog" useGeneratedKeys="true" keyProperty="id">
+        insert into ter_data_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="terSn != null">ter_sn,</if>
+            <if test="sensorType != null">sensor_type,</if>
+            <if test="data != null">data,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="sensorStatus != null">sensor_status,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="terSn != null">#{terSn},</if>
+            <if test="sensorType != null">#{sensorType},</if>
+            <if test="data != null">#{data},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="sensorStatus != null">#{sensorStatus},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTerDataLog" parameterType="TerDataLog">
+        update ter_data_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="terSn != null">ter_sn = #{terSn},</if>
+            <if test="sensorType != null">sensor_type = #{sensorType},</if>
+            <if test="data != null">data = #{data},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="sensorStatus != null">sensor_status = #{sensorStatus},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTerDataLogById" parameterType="Long">
+        delete
+        from ter_data_log
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteTerDataLogByIds" parameterType="String">
+        delete from ter_data_log where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <resultMap type="TerDataLog" id="TerAlertLogResult">
+        <result property="id" column="id"/>
+        <result property="terSn" column="ter_sn"/>
+        <result property="sensorType" column="sensor_type"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="sensorStatus" column="sensor_status"/>
+        <result property="pointName" column="point_name"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="gateway" column="gateway"/>
+        <result property="gatewayName" column="gatewayName"/>
+    </resultMap>
+    <select id="selectTerAlertLogList" resultType="com.ruoyi.iotlighting.domain.TerDataLog" resultMap="TerAlertLogResult">
+        select tdl.id,
+        tdl.ter_sn,
+        tdl.sensor_type,
+        tdl.created_time,
+        tdl.del_flag,
+        bpi.building_id,
+        bpi.floor_id,
+        bpi.point_name,
+        bpi.point_x,
+        bpi.point_y,
+        bfi.floor_name,
+        ti.gateway,
+        tg.name as gatewayName
+        from ter_data_log tdl
+        LEFT JOIN ter_info ti on (tdl.ter_sn = ti.sn)
+        LEFT JOIN ter_building_point_info tbpi on (ti.sn = tbpi.ter_sn)
+        left join building_point_info bpi on (bpi.id = tbpi.point_id and bpi.del_flag='0')
+        left join building_floor_info bfi on (bfi.id = bpi.floor_id)
+        left join ter_gateway tg on(ti.gateway = tg.sn)
+        where  tdl.sensor_status='alarm'
+        <if test="terSn != null  and terSn != ''">and tdl.ter_sn = #{terSn}</if>
+        order by tdl.created_time desc
+
+    </select>
+</mapper>

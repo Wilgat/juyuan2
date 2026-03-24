@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.BuildingZoneInfoMapper">
+
+    <resultMap type="BuildingZoneInfo" id="BuildingZoneInfoResult">
+        <result property="id" column="id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="floorId" column="floor_id"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="block" column="block"/>
+        <result property="zone" column="zone"/>
+        <result property="zoneSub" column="zone_sub"/>
+        <result property="pointName" column="point_name"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <sql id="selectBuildingZoneInfoVo">
+        select bzi.id,
+               bzi.building_id,
+               bi.name as building_name,
+               bzi.floor_id,
+               bfi.floor_name,
+               bzi.block,
+               bzi.zone,
+               bzi.zone_sub,
+               bzi.point_name,
+               bzi.created_by,
+               bzi.created_time,
+               bzi.updated_by,
+               bzi.updated_time,
+               bzi.del_flag
+        from building_zone_info bzi
+                 left join building_info bi on bzi.building_id = bi.id
+                 left join building_floor_info bfi on bzi.floor_id = bfi.id
+                 left join sys_dept d on d.dept_id = bi.dept_id
+    </sql>
+
+    <select id="selectBuildingZoneInfoList" parameterType="BuildingZoneInfo" resultMap="BuildingZoneInfoResult">
+        <include refid="selectBuildingZoneInfoVo"/>
+        <where>
+            <if test="buildingId != null">and bzi.building_id = #{buildingId}</if>
+            <if test="floorId != null">and bzi.floor_id = #{floorId}</if>
+            <if test="block != null">and bzi.block = #{block}</if>
+            <if test="zone != null">and bzi.zone = #{zone}</if>
+            <if test="zoneSub != null">and bzi.zone_sub = #{zoneSub}</if>
+            <if test="pointName != null">and bzi.point_name = #{pointName}</if>
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <select id="selectBuildingZoneInfoById" parameterType="Long" resultMap="BuildingZoneInfoResult">
+        <include refid="selectBuildingZoneInfoVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertBuildingZoneInfo" parameterType="BuildingZoneInfo" keyProperty="id">
+        insert into building_zone_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="buildingId != null">building_id,</if>
+            <if test="floorId != null">floor_id,</if>
+            <if test="block != null">block,</if>
+            <if test="zone != null">zone,</if>
+            <if test="zoneSub != null">zone_sub,</if>
+            <if test="pointName != null">point_name,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedBy != null">updated_by,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="buildingId != null">#{buildingId},</if>
+            <if test="floorId != null">#{floorId},</if>
+            <if test="block != null">#{block},</if>
+            <if test="zone != null">#{zone},</if>
+            <if test="zoneSub != null">#{zoneSub},</if>
+            <if test="pointName != null">#{pointName},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedBy != null">#{updatedBy},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateBuildingZoneInfo" parameterType="BuildingZoneInfo">
+        update building_zone_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="buildingId != null">building_id = #{buildingId},</if>
+            <if test="floorId != null">floor_id = #{floorId},</if>
+            <if test="block != null">block = #{block},</if>
+            <if test="zone != null">zone = #{zone},</if>
+            <if test="zoneSub != null">zone_sub = #{zoneSub},</if>
+            <if test="pointName != null">point_name = #{pointName},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBuildingZoneInfoById" parameterType="Long">
+        delete
+        from building_zone_info
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteBuildingZoneInfoByIds" parameterType="String">
+        delete from building_zone_info where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

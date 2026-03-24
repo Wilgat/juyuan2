@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.BuildingRouteMapper">
+
+    <resultMap type="BuildingRoute" id="BuildingRouteResult">
+        <result property="id" column="id"/>
+        <result property="routeName" column="route_name"/>
+    </resultMap>
+
+    <sql id="selectBuildingRoutelVo">
+        select br.id, br.route_name
+        from building_route br
+                 inner join building_info bi on (br.building_id = bi.id)
+                 inner join sys_dept d on (bi.dept_id = d.dept_id)
+    </sql>
+    <delete id="deleteBuildingRouteById">
+        delete
+        from building_route
+        where id = #{id}
+    </delete>
+
+    <select id="selectBuildingRouteList" parameterType="BuildingRoute" resultMap="BuildingRouteResult">
+        <include refid="selectBuildingRoutelVo"/>
+        <where>
+            <if test="id != null ">and br.id = #{id}</if>
+            <if test="buildingId != null">br.building_id=#{buildingId}</if>
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <insert id="insertBuildingRoute" parameterType="BuildingRoute" keyProperty="id">
+        insert into building_route
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="routeName != null">route_name,</if>
+            <if test="buildingId != null">building_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="routeName != null">#{routeName},</if>
+            <if test="buildingId != null">#{buildingId},</if>
+        </trim>
+    </insert>
+
+    <update id="updateBuildingRoute" parameterType="BuildingRoute">
+        update building_route
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="routeName != null">route_name = #{routeName},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+
+</mapper>

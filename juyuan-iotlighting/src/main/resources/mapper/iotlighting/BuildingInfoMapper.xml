@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.BuildingInfoMapper">
+
+    <resultMap type="BuildingInfo" id="BuildingInfoResult">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="buildingFloor" column="building_floor"/>
+        <result property="buildingLength" column="building_length"/>
+        <result property="buildingWidth" column="building_width"/>
+        <result property="parkingFloor" column="parking_floor"/>
+        <result property="parkingLength" column="parking_length"/>
+        <result property="parkingWidth" column="parking_width"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="floors" column="floors"/>
+    </resultMap>
+
+    <sql id="selectBuildingInfoVo">
+        select bi.id,
+               bi.name,
+               bi.building_floor,
+               bi.building_length,
+               bi.building_width,
+               bi.parking_floor,
+               bi.parking_length,
+               bi.parking_width,
+               bi.created_by,
+               bi.created_time,
+               bi.updated_by,
+               bi.updated_time,
+               bi.del_flag,
+               bi.dept_id,
+               GROUP_CONCAT(bfi.floor_number) as floors
+        from building_info bi
+                 left join iotlighting.building_floor_info bfi on bi.id = bfi.building_id
+                 inner join sys_dept d on (bi.dept_id = d.dept_id)
+    </sql>
+
+    <select id="selectBuildingInfoList" parameterType="BuildingInfo" resultMap="BuildingInfoResult">
+        <include refid="selectBuildingInfoVo"/>
+        <where>
+            <if test="name != null  and name != ''">and bi.name like concat('%', #{name}, '%')</if>
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+        group by bi.id
+    </select>
+
+    <select id="selectBuildingInfoById" parameterType="Long" resultMap="BuildingInfoResult">
+        <include refid="selectBuildingInfoVo"/>
+        where bi.id = #{id} and bi.del_flag = '0' group by bi.id
+    </select>
+    <select id="selectBuildingTerCountByBuildingIds" resultType="java.lang.Integer">
+        select count(1) from ter_building_point_info tbpi left join building_point_info bpi on tbpi.point_id = bpi.id
+        where bpi.building_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    <select id="selectBuildingGatewayCountByBuildingIds" resultType="java.lang.Integer">
+        select count(1) from ter_gateway tg where tg.building_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <insert id="insertBuildingInfo" parameterType="BuildingInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into building_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="name != null">name,</if>
+            <if test="buildingFloor != null">building_floor,</if>
+            <if test="buildingLength != null">building_length,</if>
+            <if test="buildingWidth != null">building_width,</if>
+            <if test="parkingFloor != null">parking_floor,</if>
+            <if test="parkingLength != null">parking_length,</if>
+            <if test="parkingWidth != null">parking_width,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedBy != null">updated_by,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="deptId != null">dept_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="name != null">#{name},</if>
+            <if test="buildingFloor != null">#{buildingFloor},</if>
+            <if test="buildingLength != null">#{buildingLength},</if>
+            <if test="buildingWidth != null">#{buildingWidth},</if>
+            <if test="parkingFloor != null">#{parkingFloor},</if>
+            <if test="parkingLength != null">#{parkingLength},</if>
+            <if test="parkingWidth != null">#{parkingWidth},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedBy != null">#{updatedBy},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="deptId != null">#{deptId},</if>
+        </trim>
+    </insert>
+
+    <update id="updateBuildingInfo" parameterType="BuildingInfo">
+        update building_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="buildingFloor != null">building_floor = #{buildingFloor},</if>
+            <if test="buildingLength != null">building_length = #{buildingLength},</if>
+            <if test="buildingWidth != null">building_width = #{buildingWidth},</if>
+            <if test="parkingFloor != null">parking_floor = #{parkingFloor},</if>
+            <if test="parkingLength != null">parking_length = #{parkingLength},</if>
+            <if test="parkingWidth != null">parking_width = #{parkingWidth},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBuildingInfoById" parameterType="Long">
+        delete
+        from building_info
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteBuildingInfoByIds" parameterType="String">
+        delete from building_info where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

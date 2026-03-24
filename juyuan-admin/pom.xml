@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.ruoyi</groupId>
+        <artifactId>iotlighting</artifactId>
+        <version>3.8.6</version>
+    </parent>
+
+    <artifactId>juyuan-admin</artifactId>
+    <packaging>jar</packaging>
+
+    <name>juyuan-admin</name>
+    <description>Web服务入口 - 主应用模块</description>
+
+    <dependencies>
+
+        <!-- Spring Boot DevTools (for hot reload in dev) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Swagger / Springfox (API docs) -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-boot-starter</artifactId>
+        </dependency>
+
+        <!-- MySQL Connector (JDBC driver) -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Internal modules (no version needed - from parent dependencyManagement) -->
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>juyuan-framework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>juyuan-quartz</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>juyuan-generator</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+
+        <plugins>
+
+            <!-- Spring Boot repackage plugin (creates executable JAR) -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>  <!-- Matches root: 2.7.18 -->
+                <configuration>
+                    <fork>true</fork>
+                <mainClass>com.ruoyi.RuoYiApplication</mainClass>   <!-- ← add this -->
+            </configuration>                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Compiler plugin is already managed in root - no need to repeat -->
+
+        </plugins>
+    </build>
+
+</project>

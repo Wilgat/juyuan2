@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.TerGatewayMapper">
+
+    <resultMap type="TerGateway" id="TerGatewayResult">
+        <result property="id" column="id"/>
+        <result property="sn" column="sn"/>
+        <result property="name" column="name"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="wifiType" column="wifi_type"/>
+    </resultMap>
+
+    <sql id="selectTerGatewayVo">
+        select tg.id,
+               tg.sn,
+               tg.name,
+               tg.created_by,
+               tg.created_time,
+               tg.updated_by,
+               tg.updated_time,
+               tg.del_flag,
+               tg.dept_id,
+               tg.building_id,
+               tg.wifi_type,
+               bi.name as building_name
+        from ter_gateway tg
+                 left join building_info bi on (tg.building_id = bi.id)
+                 inner join sys_dept d on (bi.dept_id = d.dept_id)
+    </sql>
+
+    <select id="selectTerGatewayList" parameterType="TerGateway" resultMap="TerGatewayResult">
+        <include refid="selectTerGatewayVo"/>
+        <where>
+            <if test="sn != null  and sn != ''">and tg.sn = #{sn}</if>
+            <if test="name != null  and name != ''">and tg.name like concat('%', #{name}, '%')</if>
+            <if test="buildingId != null ">and tg.building_id = #{buildingId}</if>
+            <if test="createdBy != null  and createdBy != ''">and tg.created_by = #{createdBy}</if>
+            <if test="createdTime != null ">and tg.created_time = #{createdTime}</if>
+            <if test="updatedBy != null  and updatedBy != ''">and tg.updated_by = #{updatedBy}</if>
+            <if test="updatedTime != null ">and tg.updated_time = #{updatedTime}</if>
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <select id="selectTerGatewayById" parameterType="Long" resultMap="TerGatewayResult">
+        <include refid="selectTerGatewayVo"/>
+        where tg.id = #{id}
+    </select>
+    <select id="selectTerGatewayBySn" resultMap="TerGatewayResult">
+        <include refid="selectTerGatewayVo"/>
+        where tg.sn = #{sn}
+    </select>
+    <select id="selectTerByGatewayId" resultType="java.lang.Integer">
+        select count(1)
+        from ter_info
+        where gateway = (select sn from ter_gateway where id = #{id})
+    </select>
+
+    <insert id="insertTerGateway" parameterType="TerGateway" keyProperty="id">
+        insert into ter_gateway
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="sn != null">sn,</if>
+            <if test="name != null">name,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedBy != null">updated_by,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="buildingId != null">building_id,</if>
+            <if test="wifiType != null">wifi_type,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="sn != null">#{sn},</if>
+            <if test="name != null">#{name},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedBy != null">#{updatedBy},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="buildingId != null">#{buildingId},</if>
+            <if test="wifiType != null">#{wifiType},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTerGateway" parameterType="TerGateway">
+        update ter_gateway
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sn != null">sn = #{sn},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="buildingId != null">building_id = #{buildingId},</if>
+            <if test="wifiType != null">wifi_type = #{wifiType},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTerGatewayById" parameterType="Long">
+        delete
+        from ter_gateway
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteTerGatewayByIds" parameterType="String">
+        delete from ter_gateway where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

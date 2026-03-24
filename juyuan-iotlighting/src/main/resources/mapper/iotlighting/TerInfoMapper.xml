@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.TerInfoMapper">
+
+    <resultMap type="TerInfo" id="TerInfoResult">
+        <result property="id" column="id"/>
+        <result property="sn" column="sn"/>
+        <result property="upc" column="upc"/>
+        <result property="terStatus" column="ter_status"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="pointId" column="point_id"/>
+        <result property="pointName" column="point_name"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="gateway" column="gateway"/>
+        <result property="gatewayName" column="gatewayName"/>
+        <result property="floorId" column="floor_id"/>
+        <result property="block" column="block"/>
+        <result property="zone" column="zone"/>
+        <result property="zoneSub" column="zone_sub"/>
+        <result property="pointX" column="point_x"/>
+        <result property="pointY" column="point_y"/>
+        <result property="linkageStatus" column="linkage_status"/>
+        <result property="licenseNumberOne" column="license_number_one"/>
+        <result property="licenseNumberTwo" column="license_number_two"/>
+        <result property="licenseNumberThree" column="license_number_three"/>
+        <association property="licenseNumberOne" javaType="String" column="point_id"
+                     select="selectLicenseNumberOne"/>
+        <association property="licenseNumberTwo" javaType="String" column="point_id"
+                     select="selectLicenseNumberTwo"/>
+        <association property="licenseNumberThree" javaType="String" column="point_id"
+                     select="selectLicenseNumberThree"/>
+        <collection property="terSensorStatusList" ofType="TerSensorStatus" select="selectSensorList" column="sn"/>
+
+    </resultMap>
+    <select id="selectSensorList" resultType="TerSensorStatus">
+        select ter_sn        as terSn,
+               sensor_type   as sensorType,
+               module_number as moduleNumber,
+               sensor_config as sensorConfig,
+               sensor_status as sensorStatus,
+               data
+        from ter_sensor_status
+        where ter_sn = #{sn}
+    </select>
+
+    <select id="selectLicenseNumberOne" resultType="java.lang.String">
+        select license_number as licenseNumberOne
+        from building_lifeguard bl
+                 inner join sys_staff ss on (bl.user_id_one = ss.user_id)
+        where bl.point_id = #{pointId}
+          and ss.staff_position = 'lifeguard'
+    </select>
+    <select id="selectLicenseNumberTwo" resultType="java.lang.String">
+        select license_number as licenseNumberTwo
+        from building_lifeguard bl
+                 inner join sys_staff ss on (bl.user_id_two = ss.user_id)
+        where bl.point_id = #{pointId}
+          and ss.staff_position = 'lifeguard'
+    </select>
+    <select id="selectLicenseNumberThree" resultType="java.lang.String">
+        select license_number as licenseNumberThree
+        from building_lifeguard bl
+                 inner join sys_staff ss on (bl.user_id_three = ss.user_id)
+        where bl.point_id = #{pointId}
+          and ss.staff_position = 'lifeguard'
+    </select>
+
+    <sql id="selectTerInfoVo">
+        select id,
+               sn,
+               upc,
+               ter_status,
+               created_by,
+               created_time,
+               updated_by,
+               updated_time,
+               del_flag,
+               dept_id
+        from ter_info
+    </sql>
+
+
+    <select id="selectTerInfoList" parameterType="TerInfo" resultMap="TerInfoResult">
+        <include refid="selectTerInfoVo"/>
+        <where>
+            <if test="sn != null  and sn != ''">and sn = #{sn}</if>
+            <if test="upc != null  and upc != ''">and upc = #{upc}</if>
+            <if test="terStatus != null ">and ter_status = #{terStatus}</if>
+            <if test="createdBy != null  and createdBy != ''">and created_by = #{createdBy}</if>
+            <if test="createdTime != null ">and created_time = #{createdTime}</if>
+            <if test="updatedBy != null  and updatedBy != ''">and updated_by = #{updatedBy}</if>
+            <if test="updatedTime != null ">and updated_time = #{updatedTime}</if>
+            <if test="deptId != null ">and dept_id = #{deptId}</if>
+        </where>
+    </select>
+
+    <select id="selectTerInfoStatusList" parameterType="TerInfo" resultMap="TerInfoResult">
+        select ti.id,
+        ti.sn,
+        ti.upc,
+        CASE
+        WHEN LENGTH(ti.upc) = 16 THEN SUBSTRING(ti.upc, 1, 3)
+        WHEN LENGTH(ti.upc) = 18 THEN SUBSTRING(ti.upc, 3, 3)
+        ELSE NULL
+        END AS led,
+        CASE
+        WHEN LENGTH(ti.upc) = 16 THEN SUBSTRING(ti.upc, 4, 2)
+        WHEN LENGTH(ti.upc) = 18 THEN SUBSTRING(ti.upc, 6, 2)
+        ELSE NULL
+        END AS module1,
+        CASE
+        WHEN LENGTH(ti.upc) = 16 THEN SUBSTRING(ti.upc, 6, 2)
+        WHEN LENGTH(ti.upc) = 18 THEN SUBSTRING(ti.upc, 8, 2)
+        ELSE NULL
+        END AS module2,
+        CASE
+        WHEN LENGTH(ti.upc) = 16 THEN SUBSTRING(ti.upc, 8, 2)
+        WHEN LENGTH(ti.upc) = 18 THEN SUBSTRING(ti.upc, 10, 2)
+        ELSE NULL
+        END AS module3,
+        CASE
+        WHEN LENGTH(ti.upc) = 16 THEN SUBSTRING(ti.upc, 10, 2)
+        WHEN LENGTH(ti.upc) = 18 THEN SUBSTRING(ti.upc, 12, 2)
+        ELSE NULL
+        END AS module4,
+        ti.ter_status,
+        tbpi.created_time,
+        ti.del_flag,
+        bpi.building_id,
+        bpi.floor_id,
+        bpi.point_name,
+        bpi.point_x,
+        bpi.point_y,
+        bpi.block,
+        bpi.zone,
+        bpi.zone_sub,
+        bi.name as building_name,
+        bfi.floor_name,
+        ti.gateway,
+        tg.name as gatewayName
+        from ter_info ti LEFT JOIN ter_building_point_info tbpi on (ti.sn = tbpi.ter_sn)
+        left join building_point_info bpi on (bpi.id = tbpi.point_id and bpi.del_flag='0')
+        left join building_floor_info bfi on (bfi.id = bpi.floor_id)
+        left join building_info bi on(bfi.building_id = bi.id)
+        left join ter_gateway tg on(ti.gateway = tg.sn)
+        inner join sys_dept d on(bi.dept_id=d.dept_id)
+        <where>
+            ti.del_flag='0'
+            <if test="sn != null  and sn != ''">and ti.sn = #{sn}</if>
+            <if test="upc != null  and upc != ''">and ti.upc = #{upc}</if>
+            <if test="terStatus != null ">and ti.ter_status = #{terStatus}</if>
+            <if test="gateway != null ">and ti.gateway = #{gateway}</if>
+            <if test="buildingId != null">and bpi.building_id = #{buildingId}</if>
+            <if test="floorId != null">and bpi.floor_id = #{floorId}</if>
+            <if test="block != null">and bpi.block = #{block}</if>
+            <if test="zone != null">and bpi.zone = #{zone}</if>
+            <if test="zoneSub != null">and bpi.zone_sub = #{zoneSub}</if>
+            <if test="createdTime != null">and DATE_FORMAT(tbpi.created_time,'%Y-%m-%d') = STR_TO_DATE(#{createdTime},
+                '%Y-%m-%d')
+            </if>
+        </where>
+        ${params.dataScope}
+        order by sn
+    </select>
+
+    <select id="selectTerInfoStatusListAll" parameterType="TerInfo" resultMap="TerInfoResult">
+        select ti.id,
+        ti.sn,
+        ti.upc,
+        CASE
+        WHEN LENGTH(ti.upc) = 16 THEN SUBSTRING(ti.upc, 1, 3)
+        WHEN LENGTH(ti.upc) = 18 THEN SUBSTRING(ti.upc, 3, 3)
+        ELSE NULL
+        END AS led,
+        CASE
+        WHEN LENGTH(ti.upc) = 16 THEN SUBSTRING(ti.upc, 4, 2)
+        WHEN LENGTH(ti.upc) = 18 THEN SUBSTRING(ti.upc, 6, 2)
+        ELSE NULL
+        END AS module1,
+        CASE
+        WHEN LENGTH(ti.upc) = 16 THEN SUBSTRING(ti.upc, 6, 2)
+        WHEN LENGTH(ti.upc) = 18 THEN SUBSTRING(ti.upc, 8, 2)
+        ELSE NULL
+        END AS module2,
+        CASE
+        WHEN LENGTH(ti.upc) = 16 THEN SUBSTRING(ti.upc, 8, 2)
+        WHEN LENGTH(ti.upc) = 18 THEN SUBSTRING(ti.upc, 10, 2)
+        ELSE NULL
+        END AS module3,
+        CASE
+        WHEN LENGTH(ti.upc) = 16 THEN SUBSTRING(ti.upc, 10, 2)
+        WHEN LENGTH(ti.upc) = 18 THEN SUBSTRING(ti.upc, 12, 2)
+        ELSE NULL
+        END AS module4,
+        ti.ter_status,
+        tbpi.created_time,
+        ti.del_flag,
+        bpi.floor_id,
+        bpi.point_name,
+        bpi.point_x,
+        bpi.point_y,
+        bpi.block,
+        bpi.zone,
+        bpi.zone_sub,
+        bi.id as building_id,
+        bi.name as building_name,
+        bfi.floor_name,
+        ti.gateway,
+        tg.name as gatewayName
+        from ter_info ti LEFT JOIN ter_building_point_info tbpi on (ti.sn = tbpi.ter_sn)
+        left join building_point_info bpi on (bpi.id = tbpi.point_id and bpi.del_flag='0')
+        left join building_floor_info bfi on (bfi.id = bpi.floor_id)
+        left join ter_gateway tg on(ti.gateway = tg.sn)
+        left join building_info bi on(bpi.building_id = bi.id or tg.building_id = bi.id)
+        inner join sys_dept d on(bi.dept_id=d.dept_id)
+        <where>
+            ti.del_flag='0'
+            <if test="sn != null  and sn != ''">and ti.sn = #{sn}</if>
+            <if test="upc != null  and upc != ''">and ti.upc = #{upc}</if>
+            <if test="terStatus != null ">and ti.ter_status = #{terStatus}</if>
+            <if test="gateway != null ">and ti.gateway = #{gateway}</if>
+            <if test="buildingId != null">and bi.id = #{buildingId}</if>
+            <if test="floorId != null">and bpi.floor_id = #{floorId}</if>
+            <if test="block != null">and bpi.block = #{block}</if>
+            <if test="zone != null">and bpi.zone = #{zone}</if>
+            <if test="zoneSub != null">and bpi.zone_sub = #{zoneSub}</if>
+            <if test="createdTime != null">and DATE_FORMAT(tbpi.created_time,'%Y-%m-%d') = STR_TO_DATE(#{createdTime},
+                '%Y-%m-%d')
+            </if>
+        </where>
+        ${params.dataScope}
+        order by sn
+    </select>
+
+    <select id="selectTerInfoStatusListNotLogin" parameterType="TerInfo" resultMap="TerInfoResult">
+        select ti.id,
+        ti.sn,
+        ti.upc,
+        ti.ter_status,
+        tbpi.created_time,
+        ti.del_flag,
+        bpi.building_id,
+        bpi.floor_id,
+        bpi.point_name,
+        bpi.id as point_id,
+        bpi.point_x,
+        bpi.point_y,
+        bi.name as building_name,
+        bfi.floor_name,
+        ti.gateway,
+        tg.name as gatewayName
+        from ter_info ti LEFT JOIN ter_building_point_info tbpi on (ti.sn = tbpi.ter_sn)
+        left join building_point_info bpi on (bpi.id = tbpi.point_id and bpi.del_flag='0')
+        left join building_floor_info bfi on (bfi.id = bpi.floor_id)
+        left join building_info bi on(bfi.building_id = bi.id)
+        left join ter_gateway tg on(ti.gateway = tg.sn)
+        inner join sys_dept d on(bi.dept_id=d.dept_id)
+        <where>
+            ti.del_flag='0'
+            <if test="sn != null  and sn != ''">and ti.sn = #{sn}</if>
+            <if test="terStatus != null ">and ti.ter_status = #{terStatus}</if>
+            <if test="gateway != null ">and ti.gateway = #{gateway}</if>
+            <if test="buildingId != null">and bpi.building_id = #{buildingId}</if>
+            <if test="floorId != null">and bpi.floor_id = #{floorId}</if>
+            <if test="createdTime != null">and DATE_FORMAT(tbpi.created_time,'%Y-%m-%d') = STR_TO_DATE(#{createdTime},
+                '%Y-%m-%d')
+            </if>
+        </where>
+        order by sn
+    </select>
+
+    <resultMap type="TerInfo" id="TerSensorInfoResult">
+        <result property="id" column="id"/>
+        <result property="sn" column="sn"/>
+        <result property="upc" column="upc"/>
+        <result property="terStatus" column="ter_status"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="gateway" column="gateway"/>
+        <result property="gatewayName" column="gatewayName"/>
+        <result property="pointId" column="point_id"/>
+        <collection property="terSensorStatusList" javaType="java.util.List" resultMap="TerSensorStatusResult"/>
+    </resultMap>
+
+    <resultMap id="TerSensorStatusResult" type="TerSensorStatus">
+        <result property="sensorType" column="sensor_type"/>
+        <result property="sensorConfig" column="sensor_config"/>
+    </resultMap>
+
+    <select id="selectTerInfoById" parameterType="Long" resultMap="TerSensorInfoResult">
+        select ti.id,
+               ti.sn,
+               ti.upc,
+               ti.ter_status,
+               ti.created_time,
+               ti.updated_time,
+               ti.del_flag,
+               ti.gateway,
+               tg.name as gatewayName,
+               tss.sensor_type,
+               tss.sensor_config,
+               tbpi.point_id
+        from ter_info ti
+                 left join ter_gateway tg on (ti.gateway = tg.sn)
+                 left join ter_sensor_status tss on (ti.sn = tss.ter_sn)
+                 LEFT JOIN ter_building_point_info tbpi on (ti.sn = tbpi.ter_sn)
+        where ti.id = #{id}
+    </select>
+
+    <select id="selectTerInfoBySn" resultMap="TerInfoResult">
+        select ti.id,
+               ti.sn,
+               ti.upc,
+               ti.ter_status,
+               ti.gateway,
+               ti.created_time,
+               ti.updated_time,
+               ti.del_flag,
+               bpi.point_name,
+               bpi.id as point_id,
+               bpi.point_x,
+               bpi.point_y,
+               bfi.floor_name,
+               bpi.building_id,
+               bpi.floor_id,
+               bpi.linkage_status
+        from ter_info ti
+                 LEFT JOIN ter_building_point_info tbpi on (ti.sn = tbpi.ter_sn)
+                 left join building_point_info bpi on (bpi.id = tbpi.point_id and bpi.del_flag = '0')
+                 left join building_floor_info bfi on (bfi.id = bpi.floor_id)
+        where ti.del_flag = '0'
+          AND ti.sn = #{sn}
+    </select>
+    <select id="selectTerInfoBySnOrUpc" parameterType="TerInfo" resultMap="TerInfoResult">
+        select ti.id, ti.sn, ti.upc
+        from ter_info ti
+        LEFT JOIN ter_gateway tg on (ti.gateway = tg.sn)
+        left join building_info bi on (tg.building_id = bi.id)
+        inner join sys_dept d on (bi.dept_id = d.dept_id)
+        <where>
+            ti.del_flag = '0'
+            and (ti.sn = #{sn} or ti.upc = #{sn})
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <insert id="insertTerInfo" parameterType="TerInfo" keyProperty="id">
+        insert into ter_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="sn != null">sn,</if>
+            <if test="upc != null">upc,</if>
+            <if test="terStatus != null">ter_status,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedBy != null">updated_by,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="gateway != null and gateway != ''">gateway,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="sn != null">#{sn},</if>
+            <if test="upc != null">#{upc},</if>
+            <if test="terStatus != null">#{terStatus},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedBy != null">#{updatedBy},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="gateway != null and gateway != '' ">#{gateway},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTerInfo" parameterType="TerInfo">
+        update ter_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sn != null">sn = #{sn},</if>
+            <if test="upc != null">upc = #{upc},</if>
+            <if test="terStatus != null">ter_status = #{terStatus},</if>
+            <if test="gateway != null">gateway = #{gateway},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTerInfoById" parameterType="Long">
+        delete
+        from ter_info
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteTerInfoByIds" parameterType="String">
+        delete from ter_info where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

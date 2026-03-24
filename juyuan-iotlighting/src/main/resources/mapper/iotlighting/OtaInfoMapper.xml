@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.OtaInfoMapper">
+
+    <resultMap type="OtaInfo" id="OtaInfoResult">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="data" column="data"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="deptId" column="dept_id"/>
+    </resultMap>
+
+    <sql id="selectOtaInfoVo">
+        select id,
+               name,
+               data,
+               created_by,
+               created_time,
+               updated_by,
+               updated_time,
+               del_flag,
+               dept_id
+        from ota_info
+    </sql>
+
+    <select id="selectOtaInfoList" parameterType="OtaInfo" resultMap="OtaInfoResult">
+        <include refid="selectOtaInfoVo"/>
+        <where>
+            <if test="name != null  and name != ''">and name like concat('%', #{name}, '%')</if>
+            <if test="data != null  and data != ''">and data = #{data}</if>
+            <if test="deptId != null ">and dept_id = #{deptId}</if>
+        </where>
+    </select>
+
+    <select id="selectOtaInfoById" parameterType="Long" resultMap="OtaInfoResult">
+        <include refid="selectOtaInfoVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertOtaInfo" parameterType="OtaInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into ota_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="data != null">data,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedBy != null">updated_by,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="deptId != null">dept_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="data != null">#{data},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedBy != null">#{updatedBy},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="deptId != null">#{deptId},</if>
+        </trim>
+    </insert>
+
+    <update id="updateOtaInfo" parameterType="OtaInfo">
+        update ota_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="data != null">data = #{data},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteOtaInfoById" parameterType="Long">
+        delete
+        from ota_info
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteOtaInfoByIds" parameterType="String">
+        delete from ota_info where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

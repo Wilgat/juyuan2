@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 日志存放路径 -->
+    <property name="log.path" value="logs"/>
+    <!-- 日志输出格式 -->
+    <property name="log.pattern"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS,GMT+8} %-5p --- [%16.16t][%30.30c{20},%4.-4line] %msg%n"/>
+
+    <!-- 控制台输出 -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 系统日志输出 -->
+    <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/logFile.log</file>
+        <!-- 循环政策：基于时间创建日志文件 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 日志文件根据时间单位切分，zip表示日志压缩存储，减少空间，%i表示在没有到达切分时间时，其他规则产生切分时计数增长，防止覆盖；后面配置单位（单位GB，MB） -->
+            <fileNamePattern>${log.path}/logFile.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <!-- 每个日志文件最大限制（压缩前前），超过该大小则切分日志文件并压缩；用于控制日志文件大小，太大不容易传输，不容易查看 -->
+            <maxFileSize>500MB</maxFileSize>
+            <!-- 所有日志文件总大小限制（压缩后），超过则删除最早的日志文件；控制日志文件大小防止磁盘被写满，超过限制自动删除旧日志 -->
+            <totalSizeCap>20GB</totalSizeCap>
+            <!-- 保留最大翻滚文件数，注意不是保留文件个数（maxFileSize会切分文件），是指通过fileNamePattern规则切分次数，超过则删除旧的日志文件，尽量配置大些 -->
+            <maxHistory>1000</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 默认根记录器，下面定义其他日志记录器 -->
+    <root level="info">
+        <appender-ref ref="file"/>
+        <appender-ref ref="console"/>
+    </root>
+
+    <!-- 系统模块日志级别控制  -->
+    <logger name="com.ruoyi" level="debug"/>
+    <!-- Spring日志级别控制  -->
+    <logger name="org.springframework" level="warn"/>
+
+</configuration>

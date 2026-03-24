@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.ruoyi</groupId>
+        <artifactId>iotlighting</artifactId>
+        <version>3.8.6</version>
+    </parent>
+
+    <artifactId>juyuan-iotlighting</artifactId>
+
+    <name>juyuan-iotlighting</name>
+    <description>物联网照明业务模块（IoT Lighting specific business logic）</description>
+
+    <properties>
+        <!-- These are already inherited from root, but kept here for explicit clarity -->
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+
+        <!-- 核心通用工具模块 -->
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>juyuan-common</artifactId>
+        </dependency>
+
+        <!-- 系统基础模块（用户、角色、菜单、字典等） -->
+        <dependency>
+            <groupId>com.ruoyi</groupId>
+            <artifactId>juyuan-system</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.34</version>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <parameters>true</parameters>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    
+                    <!-- Critical: annotation processing for Lombok -->
+                    <annotationProcessorPaths>
+                        <path>  <!-- ← this must be <path> (singular) -->
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.34</version>
+                        </path>
+                    </annotationProcessorPaths>
+                    
+                    <!-- Optional: ensures full annotation processing -->
+                    <proc>full</proc>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.BuildingPatrolLogDetailMapper">
+
+    <resultMap type="BuildingPatrolLogDetail" id="BuildingPatrolLogDetailResult">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="block" column="block"/>
+        <result property="zone" column="zone"/>
+        <result property="zoneSub" column="zone_sub"/>
+        <result property="createTime" column="create_time"/>
+        <result property="startTime" column="start_time"/>
+        <result property="patrolId" column="patrol_id"/>
+        <result property="patrolLogId" column="patrol_log_id"/>
+        <result property="completeFlag" column="complete_flag"/>
+        <result property="routeId" column="route_id"/>
+        <result property="terSn" column="ter_sn"/>
+        <result property="patrolNumber" column="patrol_number"/>
+        <result property="waitTime" column="wait_time"/>
+        <result property="tolerantTime" column="tolerant_time"/>
+        <result property="gateway" column="gateway"/>
+    </resultMap>
+
+    <sql id="selectBuildingPatrolLogDetailVo">
+        select bpi.block,
+               bpi.zone,
+               bpi.zone_sub,
+               bfi.floor_name,
+               bpld.create_time,
+               bp.id  as patrol_id,
+               bpl.id as patrol_log_id,
+               bpld.complete_flag,
+               bpl.start_time,
+               bp.route_id,
+               bp.patrol_number,
+               bp.wait_time,
+               bp.tolerant_time,
+               tbpi.ter_sn,
+               ti.gateway
+        from building_patrol_log bpl
+                 left join sys_user su on (bpl.user_id = su.user_id and bpl.complete_flag = '0')
+                 left join sys_staff ss on (ss.user_id = su.user_id)
+                 left join building_patrol bp on (bpl.route_id = bp.route_id)
+                 left join building_patrol_log_detail bpld on (bp.id = bpld.patrol_id and bpld.patrol_log_id = bpl.id)
+                 left join building_point_info bpi on (bpi.id = bp.point_id)
+                 left join building_floor_info bfi on (bpi.floor_id = bfi.id)
+                 left join ter_building_point_info tbpi on (bpi.id = tbpi.point_id)
+                 left join ter_info ti on (tbpi.ter_sn = ti.sn)
+    </sql>
+
+
+    <insert id="insertBuildingPatrolLogDetail" parameterType="BuildingPatrolLogDetail" keyProperty="id">
+        insert into building_patrol_log_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="patrolLogId != null">patrol_log_id,</if>
+            <if test="patrolId != null">patrol_id,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="completeFlag != null">complete_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="patrolLogId != null">#{patrolLogId},</if>
+            <if test="patrolId != null">#{patrolId},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="completeFlag != null">#{completeFlag},</if>
+        </trim>
+    </insert>
+
+    <select id="selectCurrentPatrolLogDetailList" parameterType="BuildingPatrolLogDetail"
+            resultMap="BuildingPatrolLogDetailResult">
+        <include refid="selectBuildingPatrolLogDetailVo"/>
+        <where>
+            <if test="patrolLogId != null ">and bpl.id = #{patrolLogId}</if>
+            <if test="completeFlag != null ">and bpl.complete_flag = #{completeFlag}</if>
+            <if test="userId != null ">and bpl.user_id = #{userId}</if>
+            <if test="licenseNumber != null ">and ss.license_number = #{licenseNumber}</if>
+            <if test="terSn != null ">and tbpi.ter_sn = #{terSn}</if>
+        </where>
+        ${params.dataScope}
+        order by bp.patrol_number ASC
+    </select>
+    <select id="selectBuildingPatrolLogDetail" parameterType="BuildingPatrolLogDetail"
+            resultMap="BuildingPatrolLogDetailResult">
+        select patrol_log_id
+        from building_patrol_log_detail
+        where patrol_log_id = #{patrolLogId}
+          and patrol_id = #{patrolId}
+    </select>
+
+</mapper>

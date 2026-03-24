@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.AppPushMapper">
+
+
+    <select id="selectAppPushCidList" resultType="java.lang.String">
+        select distinct su.cid
+        from sys_user su
+        where (find_in_set(CONCAT(su.dept_id, ''), (select d.ancestors
+                                                    from building_info bi
+                                                             inner join sys_dept d on (bi.dept_id = d.dept_id)
+                                                    where bi.id = #{buildingId})) > 0
+            or su.dept_id = (select d.dept_id
+                             from building_info bi
+                                      inner join sys_dept d on (bi.dept_id = d.dept_id)
+                             where bi.id = #{buildingId}) and su.cid is not null)
+          and su.user_id in (select user_id
+                             from sys_user_role
+                             where role_id = (select role_id
+                                              from sys_role
+                                              where role_key = CONCAT('alert_', #{sensorType})))
+    </select>
+    <select id="selectAdminPushCidList" resultType="java.lang.String">
+        select distinct su.cid
+        from sys_user su
+                 left join sys_user_role sur on (su.user_id = sur.user_id)
+                 left join sys_role sr on sur.role_id = sr.role_id
+        where sr.role_key in ('admin', 'sys_admin', 'pc_admin')
+          and su.cid is not null
+    </select>
+</mapper>

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.BuildingAreaMapper">
+
+    <resultMap type="BuildingArea" id="BuildingAreaResult">
+        <result property="id" column="id"/>
+        <result property="areaId" column="area_id"/>
+        <result property="areaName" column="area_name"/>
+        <result property="areaType" column="area_type"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="block" column="block"/>
+        <result property="zone" column="zone"/>
+        <result property="zoneSub" column="zone_sub"/>
+        <result property="pointName" column="point_name"/>
+        <result property="pointId" column="point_id"/>
+        <result property="terSn" column="ter_sn"/>
+        <result property="gateway" column="gateway"/>
+    </resultMap>
+
+    <resultMap type="BuildingAreaStaff" id="BuildingAreaStaffResult">
+        <result property="id" column="id"/>
+        <result property="areaName" column="area_name"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="areaType" column="area_type"/>
+        <result property="userId" column="user_id"/>
+        <result property="staffNumber" column="staff_number"/>
+        <result property="staffPosition" column="staff_position"/>
+        <result property="licenseNumber" column="license_number"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="timeConfig" column="time_config"/>
+    </resultMap>
+
+    <sql id="selectBuildingArealVo">
+        select br.id, br.area_name
+        from building_area br
+                 inner join building_info bi on (br.building_id = bi.id)
+                 inner join sys_dept d on (bi.dept_id = d.dept_id)
+    </sql>
+    <delete id="deleteBuildingAreaById">
+        delete
+        from building_area
+        where id = #{id}
+    </delete>
+    <delete id="deletBuildingAreaStaffConfigByAreaId">
+        delete
+        from building_area_staff
+        where area_id = #{buildingAreaId}
+    </delete>
+
+    <select id="selectBuildingAreaList" parameterType="BuildingArea" resultMap="BuildingAreaResult">
+        <include refid="selectBuildingArealVo"/>
+        <where>
+            <if test="id != null ">and br.id = #{id}</if>
+            <if test="buildingId != null">br.building_id=#{buildingId}</if>
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <select id="selectBuildingAreaListAll" parameterType="BuildingArea" resultMap="BuildingAreaResult">
+        select bpi.building_id,
+               bpi.id  as point_id,
+               bpi.block,
+               bpi.zone,
+               bpi.zone_sub,
+               bpi.point_name,
+               ba.id as area_id,
+               ba.area_name,
+               ba.area_type,
+               bi.name as building_name,
+               bfi.floor_name,
+               tbpi.ter_sn,
+               ti.gateway
+        from building_point_info bpi
+                 left join building_floor_info bfi on (bpi.floor_id = bfi.id)
+                 left join building_area_point bap on (bpi.id = bap.point_id and bap.area_id = #{areaId})
+                 left join building_area ba on (bap.area_id = ba.id)
+                 left join building_info bi on (bpi.building_id = bi.id)
+                 left join ter_building_point_info tbpi on (tbpi.point_id = bpi.id)
+                 inner join ter_info ti on (tbpi.ter_sn = ti.sn)
+                 inner join ter_sensor_status tss on (tbpi.ter_sn = tss.ter_sn and tss.sensor_type = 'post')
+                 inner join sys_dept d on (bi.dept_id = d.dept_id)
+        where bpi.building_id = #{buildingId}
+    </select>
+
+    <select id="selectBuildingAreaStaffList" parameterType="BuildingAreaStaff" resultMap="BuildingAreaStaffResult">
+        select distinct ss.staff_id, ss.staff_number, ss.staff_position, ss.license_number,
+                        su.user_id, su.nick_name,bas.time_config
+        from sys_user su left join sys_staff ss on(su.user_id=ss.user_id)
+                         left join sys_user_role sur on(su.user_id=sur.user_id)
+                         left join sys_role sr on(sr.role_id=sur.role_id)
+                         left join building_area_staff bas on(su.user_id = bas.user_id)
+                         inner join sys_dept d on(su.dept_id = d.dept_id)
+        <where>
+            sr.role_key NOT LIKE '%admin%' and bas.id is not null
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+    <select id="selectBuildingAreaStaffConfigList" parameterType="BuildingAreaStaff" resultMap="BuildingAreaStaffResult">
+        select distinct ss.staff_id, ss.staff_number, ss.staff_position, ss.license_number,
+                        su.user_id, su.nick_name,bas.time_config
+        from sys_user su left join sys_staff ss on(su.user_id=ss.user_id)
+                         left join sys_user_role sur on(su.user_id=sur.user_id)
+                         left join sys_role sr on(sr.role_id=sur.role_id)
+                         left join building_area_staff bas on(su.user_id = bas.user_id)
+                         inner join sys_dept d on(su.dept_id = d.dept_id)
+        <where>
+            sr.role_key NOT LIKE '%admin%'
+        </where>
+        <!-- 数据范围过滤 -->
+        ${params.dataScope}
+    </select>
+
+
+    <insert id="insertBuildingArea" parameterType="BuildingArea" keyProperty="id">
+        insert into building_area
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="areaName != null">area_name,</if>
+            <if test="buildingId != null">building_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="areaName != null">#{areaName},</if>
+            <if test="buildingId != null">#{buildingId},</if>
+        </trim>
+    </insert>
+    <insert id="insertBuildingAreaStaffConfigBatch">
+        insert into building_area_staff(id, area_id, user_id, time_config) values
+        <foreach item="item" index="index" collection="buildingAreaStaffList" separator=",">
+            (#{item.id},#{item.areaId},#{item.userId},#{item.timeConfig})
+        </foreach>
+    </insert>
+
+    <update id="updateBuildingArea" parameterType="BuildingArea">
+        update building_area
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="areaName != null">area_name = #{areaName},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+
+</mapper>

@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.BuildingPointInfoMapper">
+
+    <resultMap type="BuildingPointInfo" id="BuildingPointInfoResult">
+        <result property="id" column="id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="floorId" column="floor_id"/>
+        <result property="pointName"    column="point_name"    />
+        <result property="terType" column="ter_type"/>
+        <result property="pointX" column="point_x"/>
+        <result property="pointY" column="point_y"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="terSn" column="ter_sn"/>
+        <result property="terStatus" column="ter_status"/>
+        <result property="linkageStatus" column="linkage_status"/>
+        <result property="block" column="block"/>
+        <result property="zone" column="zone"/>
+        <result property="zoneSub" column="zone_sub"/>
+    </resultMap>
+
+    <sql id="selectBuildingPointInfoVo">
+        select id,
+               building_id,
+               floor_id,
+               point_name,
+               ter_type,
+               point_x,
+               point_y,
+               created_by,
+               created_time,
+               updated_by,
+               updated_time,
+               del_flag
+        from building_point_info
+    </sql>
+
+    <select id="selectBuildingPointInfoList" parameterType="BuildingPointInfo" resultMap="BuildingPointInfoResult">
+        <include refid="selectBuildingPointInfoVo"/>
+        <where>
+            <if test="buildingId != null ">and building_id = #{buildingId}</if>
+            <if test="floorId != null  and floorId != ''">and floor_id = #{floorId}</if>
+            <if test="pointName != null  and pointName != ''"> and point_name like concat('%', #{pointName}, '%')</if>
+            <if test="terType != null ">and ter_type = #{terType}</if>
+            <if test="pointX != null ">and point_x = #{pointX}</if>
+            <if test="pointY != null ">and point_y = #{pointY}</if>
+            <if test="createdBy != null  and createdBy != ''">and created_by = #{createdBy}</if>
+            <if test="createdTime != null ">and created_time = #{createdTime}</if>
+            <if test="updatedBy != null  and updatedBy != ''">and updated_by = #{updatedBy}</if>
+            <if test="updatedTime != null ">and updated_time = #{updatedTime}</if>
+        </where>
+    </select>
+
+    <resultMap type="BuildingPointInfo" id="BuildingPointInfoTerResult">
+        <result property="id" column="id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="floorId" column="floor_id"/>
+        <result property="pointName"    column="point_name"    />
+        <result property="terType" column="ter_type"/>
+        <result property="pointX" column="point_x"/>
+        <result property="pointY" column="point_y"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="linkageStatus" column="linkage_status"/>
+        <result property="terSn" column="ter_sn"/>
+        <result property="terStatus" column="ter_status"/>
+        <result property="block" column="block"/>
+        <result property="zone" column="zone"/>
+        <result property="zoneSub" column="zone_sub"/>
+        <collection  property="terSensorStatusList" column="{terSn=ter_sn}"
+                     javaType="java.util.List"  select="getTerSensorStatus" />
+    </resultMap>
+    <resultMap id="TerSensorStatusMap" type="TerSensorStatus">
+        <result property="terSn" column="ter_sn"/>
+        <result property="sensorType" column="sensor_type"/>
+        <result property="data" column="data"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="sensorStatus" column="sensor_status"/>
+        <result property="dealFlag" column="deal_flag"/>
+    </resultMap>
+    <select id="getTerSensorStatus" resultMap="TerSensorStatusMap">
+        select ter_sn, sensor_type, data, updated_time, sensor_status, deal_flag
+        from ter_sensor_status
+        WHERE ter_sn = #{terSn}
+    </select>
+    <select id="selectBuildingPointInfoById" parameterType="Long" resultMap="BuildingPointInfoResult">
+        select bpi.id,
+               bpi.building_id,
+               bpi.floor_id,
+               bpi.point_name,
+               bpi.ter_type,
+               bpi.point_x,
+               bpi.point_y,
+               bpi.created_by,
+               bpi.created_time,
+               bpi.updated_by,
+               bpi.updated_time,
+               bpi.del_flag,
+               bpi.linkage_status,
+               tbpi.ter_sn,
+               IFNULL(ti.ter_status, 'unbind') as ter_status
+        from building_point_info bpi
+                 LEFT JOIN ter_building_point_info tbpi ON (bpi.id = tbpi.point_id)
+                 LEFT JOIN ter_info ti ON (tbpi.ter_sn = ti.sn)
+        WHERE bpi.del_flag = '0'
+          AND bpi.id = #{id}
+    </select>
+    <select id="selectBuildingPointTerList" parameterType="BuildingPointInfo" resultMap="BuildingPointInfoTerResult">
+        select bpi.id,
+               bpi.building_id,
+               bpi.floor_id,
+               bpi.point_name,
+               bpi.ter_type,
+               bpi.point_x,
+               bpi.point_y,
+               bpi.created_by,
+               bpi.created_time,
+               bpi.updated_by,
+               bpi.updated_time,
+               bpi.del_flag,
+               bpi.linkage_status,
+               bpi.block,
+               bpi.zone,
+               bpi.zone_sub,
+               tbpi.ter_sn,
+               IFNULL(ti.ter_status, 'unbind') as ter_status
+        from building_point_info bpi
+                 LEFT JOIN ter_building_point_info tbpi ON (bpi.id = tbpi.point_id)
+                 LEFT JOIN ter_info ti ON (tbpi.ter_sn = ti.sn and ti.del_flag='0')
+        WHERE bpi.del_flag = '0'
+          AND bpi.building_id = #{buildingId}
+          AND bpi.floor_id = #{floorId}
+    </select>
+    <select id="selectBuildingPointInfo" parameterType="BuildingPointInfo" resultMap="BuildingPointInfoResult">
+        <include refid="selectBuildingPointInfoVo"/>
+        where building_id = #{buildingId} and floor_id = #{floorId} and point_x = #{pointX} and point_y = #{pointY} and
+        del_flag='0'
+    </select>
+    <select id="selectBuildingBlockInfo" parameterType="BuildingPointInfo" resultType="java.lang.String">
+        select distinct
+        bpi.block
+        from building_point_info bpi
+        LEFT JOIN building_info bi ON (bpi.building_id = bi.id)
+        inner join sys_dept d on(bi.dept_id=d.dept_id)
+        <where>
+            bpi.del_flag = '0' and bpi.block is not null
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <select id="selectBuildingZoneInfo" parameterType="BuildingPointInfo" resultType="java.lang.String">
+        select distinct
+            bpi.zone
+        from building_point_info bpi
+                 LEFT JOIN building_info bi ON (bpi.building_id = bi.id)
+                 inner join sys_dept d on(bi.dept_id=d.dept_id)
+        <where>
+            bpi.del_flag = '0' and bpi.block is not null
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <select id="selectBuildingZoneSubInfo" parameterType="BuildingPointInfo" resultType="java.lang.String">
+        select distinct bpi.zone_sub
+        from building_point_info bpi
+        LEFT JOIN building_info bi ON (bpi.building_id = bi.id)
+        inner join sys_dept d on (bi.dept_id = d.dept_id)
+        <where>
+            bpi.del_flag = '0' and bpi.block is not null
+        </where>
+        ${params.dataScope}
+    </select>
+
+    <insert id="insertBuildingPointInfo" parameterType="BuildingPointInfo" keyProperty="id">
+        insert into building_point_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="buildingId != null">building_id,</if>
+            <if test="floorId != null">floor_id,</if>
+            <if test="pointName != null">point_name,</if>
+            <if test="terType != null">ter_type,</if>
+            <if test="pointX != null">point_x,</if>
+            <if test="pointY != null">point_y,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedBy != null">updated_by,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="linkageStatus != null">linkage_status,</if>
+            <if test="block != null">block,</if>
+            <if test="zone != null">zone,</if>
+            <if test="zoneSub != null">zone_sub,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="buildingId != null">#{buildingId},</if>
+            <if test="floorId != null">#{floorId},</if>
+            <if test="pointName != null">#{pointName},</if>
+            <if test="terType != null">#{terType},</if>
+            <if test="pointX != null">#{pointX},</if>
+            <if test="pointY != null">#{pointY},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedBy != null">#{updatedBy},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="linkageStatus != null">#{linkageStatus},</if>
+            <if test="block != null">#{block},</if>
+            <if test="zone != null">#{zone},</if>
+            <if test="zoneSub != null">#{zoneSub},</if>
+        </trim>
+    </insert>
+
+    <update id="updateBuildingPointInfo" parameterType="BuildingPointInfo">
+        update building_point_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="buildingId != null">building_id = #{buildingId},</if>
+            <if test="floorId != null">floor_id = #{floorId},</if>
+            <if test="pointName != null">point_name = #{pointName},</if>
+            <if test="terType != null">ter_type = #{terType},</if>
+            <if test="pointX != null">point_x = #{pointX},</if>
+            <if test="pointY != null">point_y = #{pointY},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="linkageStatus != null">linkage_status=#{linkageStatus},</if>
+            <if test="block != null">block=#{block},</if>
+            <if test="zone != null">zone=#{zone},</if>
+            <if test="zoneSub != null">zone_sub=#{zoneSub},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteBuildingPointInfoById" parameterType="Long">
+        delete from  building_point_info where id = #{id}
+    </update>
+
+
+    <delete id="deleteBuildingPointInfoByIds" parameterType="String">
+        delete from building_point_info where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

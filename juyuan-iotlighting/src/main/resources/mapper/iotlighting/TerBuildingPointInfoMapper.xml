@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.TerBuildingPointInfoMapper">
+
+    <resultMap type="TerBuildingPointInfo" id="TerBuildingPointInfoResult">
+        <result property="terSn" column="ter_sn"/>
+        <result property="pointId" column="point_id"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+    </resultMap>
+
+    <sql id="selectTerBuildingPointInfoVo">
+        select ter_sn, point_id, created_by, created_time
+        from ter_building_point_info
+    </sql>
+
+    <select id="selectTerBuildingPointInfoList" parameterType="TerBuildingPointInfo"
+            resultMap="TerBuildingPointInfoResult">
+        <include refid="selectTerBuildingPointInfoVo"/>
+        <where>
+            <if test="terSn != null  and terSn != ''">and ter_sn = #{terSn}</if>
+            <if test="pointId != null ">and point_id = #{pointId}</if>
+            <if test="createdBy != null  and createdBy != ''">and created_by = #{createdBy}</if>
+            <if test="createdTime != null ">and created_time = #{createdTime}</if>
+        </where>
+    </select>
+
+    <select id="selectTerBuildingPointInfoByTerSn" parameterType="String" resultMap="TerBuildingPointInfoResult">
+        <include refid="selectTerBuildingPointInfoVo"/>
+        where ter_sn = #{terSn}
+    </select>
+    <select id="selectTerBuildingPointInfoByPointId" parameterType="Long" resultMap="TerBuildingPointInfoResult">
+        <include refid="selectTerBuildingPointInfoVo"/>
+        where point_id = #{pointId}
+    </select>
+
+    <insert id="insertTerBuildingPointInfo" parameterType="TerBuildingPointInfo">
+        insert into ter_building_point_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="terSn != null">ter_sn,</if>
+            <if test="pointId != null">point_id,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="createdTime != null">created_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="terSn != null">#{terSn},</if>
+            <if test="pointId != null">#{pointId},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTerBuildingPointInfo" parameterType="TerBuildingPointInfo">
+        update ter_building_point_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="pointId != null">point_id = #{pointId},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+        </trim>
+        where ter_sn = #{terSn}
+    </update>
+
+    <delete id="deleteTerBuildingPointInfoByTerSn" parameterType="String">
+        delete
+        from ter_building_point_info
+        where ter_sn = #{terSn}
+    </delete>
+
+    <delete id="deleteTerBuildingPointInfoByTerSns" parameterType="String">
+        delete from ter_building_point_info where ter_sn in
+        <foreach item="terSn" collection="array" open="(" separator="," close=")">
+            #{terSn}
+        </foreach>
+    </delete>
+</mapper>

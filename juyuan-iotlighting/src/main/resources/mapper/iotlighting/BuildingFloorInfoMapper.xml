@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.iotlighting.mapper.BuildingFloorInfoMapper">
+
+    <resultMap type="BuildingFloorInfo" id="BuildingFloorInfoResult">
+        <result property="id" column="id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="type" column="type"/>
+        <result property="floorNumber" column="floor_number"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="updatedTime" column="updated_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="floorLength" column="floor_length"/>
+        <result property="floorWidth" column="floor_width"/>
+        <result property="backgroundImgId" column="background_img_id"/>
+        <result property="buildingName" column="building_name"/>
+        <result property="deptName" column="dept_name"/>
+    </resultMap>
+
+    <sql id="selectBuildingFloorInfoVo">
+        select bfi.id,
+               bfi.building_id,
+               bfi.floor_name,
+               bfi.type,
+               bfi.floor_number,
+               bfi.created_by,
+               bfi.created_time,
+               bfi.updated_by,
+               bfi.updated_time,
+               bfi.del_flag,
+               bfi.dept_id,
+               bfi.floor_length,
+               bfi.floor_width,
+               bfi.background_img_id,
+               bi.name as building_name,
+               d.dept_name
+        from building_floor_info bfi
+                 left join building_info bi on (bfi.building_id = bi.id)
+                 inner join sys_dept d on (bi.dept_id = d.dept_id)
+    </sql>
+
+    <select id="selectBuildingFloorInfoList" parameterType="BuildingFloorInfo" resultMap="BuildingFloorInfoResult">
+        <include refid="selectBuildingFloorInfoVo"/>
+        <where>
+            bfi.del_flag='0'
+            <if test="buildingId != null ">and bfi.building_id = #{buildingId}</if>
+            <if test="floorName != null  and floorName != ''">and bfi.floor_name like concat('%', #{floorName}, '%')
+            </if>
+            <if test="type != null ">and bfi.type = #{type}</if>
+            <if test="floorNumber != null ">and bfi.floor_number = #{floorNumber}</if>
+            <if test="createdBy != null  and createdBy != ''">and bfi.created_by = #{createdBy}</if>
+            <if test="createdTime != null ">and bfi.created_time = #{createdTime}</if>
+            <if test="updatedBy != null  and updatedBy != ''">and bfi.updated_by = #{updatedBy}</if>
+            <if test="updatedTime != null ">and bfi.updated_time = #{updatedTime}</if>
+            <if test="deptId != null ">and bfi.dept_id = #{deptId}</if>
+        </where>
+        order by floor_number ASC
+    </select>
+
+
+    <resultMap type="BuildingTerStatus" id="BuildingTerStatusResult">
+        <result property="id" column="id"/>
+        <result property="buildingId" column="building_id"/>
+        <result property="floorName" column="floor_name"/>
+        <result property="terSn" column="ter_sn"/>
+        <result property="terStatus" column="ter_status"/>
+        <result property="sensorType" column="sensor_type"/>
+        <result property="sensorStatus" column="sensor_status"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <select id="selectBuildingFloorInfoListStatus" parameterType="BuildingFloorInfo"
+            resultMap="BuildingTerStatusResult">
+        select bfi.id,
+        bfi.floor_name,
+        bfi.building_id,
+        tbpi.ter_sn,
+        ti.ter_status,
+        tss.sensor_type,
+        tss.sensor_status
+        from building_floor_info bfi
+        LEFT JOIN building_point_info bpi ON (bfi.id = bpi.floor_id and bpi.del_flag = '0')
+        LEFT JOIN ter_building_point_info tbpi ON (bpi.id = tbpi.point_id)
+        LEFT JOIN ter_info ti ON (tbpi.ter_sn = ti.sn and ti.del_flag = '0')
+        LEFT JOIN ter_sensor_status tss on tbpi.ter_sn = tss.ter_sn
+        WHERE bfi.del_flag = '0'
+        <if test="buildingId != null ">and bfi.building_id=#{buildingId}</if>
+        order by bfi.floor_number ASC,tbpi.ter_sn ASC
+    </select>
+
+
+    <select id="selectBuildingFloorInfoById" parameterType="Long" resultMap="BuildingFloorInfoResult">
+        <include refid="selectBuildingFloorInfoVo"/>
+        where bfi.id = #{id} and bfi.del_flag='0'
+    </select>
+
+    <select id="selectBuildingFloorByName" resultMap="BuildingFloorInfoResult">
+        <include refid="selectBuildingFloorInfoVo"/>
+        where bfi.floor_name = #{floorName} and bi.name = #{buildingName} and bfi.del_flag='0'
+        ${params.dataScope}
+    </select>
+    <select id="selectTerCountByBuildingFloorIds" resultType="java.lang.Integer">
+        select count(1)
+        from ter_building_point_info tbpi
+        left join building_point_info bpi on tbpi.point_id = bpi.id
+        where bpi.floor_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <insert id="insertBuildingFloorInfo" parameterType="BuildingFloorInfo" keyProperty="id">
+        insert into building_floor_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="buildingId != null">building_id,</if>
+            <if test="floorName != null">floor_name,</if>
+            <if test="type != null">type,</if>
+            <if test="floorNumber != null">floor_number,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="createdTime != null">created_time,</if>
+            <if test="updatedBy != null">updated_by,</if>
+            <if test="updatedTime != null">updated_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="floorLength != null">floor_length,</if>
+            <if test="floorWidth != null">floor_width,</if>
+            <if test="backgroundImgId != null">background_img_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="buildingId != null">#{buildingId},</if>
+            <if test="floorName != null">#{floorName},</if>
+            <if test="type != null">#{type},</if>
+            <if test="floorNumber != null">#{floorNumber},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="createdTime != null">#{createdTime},</if>
+            <if test="updatedBy != null">#{updatedBy},</if>
+            <if test="updatedTime != null">#{updatedTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="floorLength != null">#{floorLength},</if>
+            <if test="floorWidth != null">#{floorWidth},</if>
+            <if test="backgroundImgId != null">#{backgroundImgId},</if>
+        </trim>
+    </insert>
+    <insert id="insertBuildingFloorInfoBatch">
+        insert into building_floor_info(
+        id,
+        building_id,
+        floor_name,
+        type,
+        floor_number,
+        created_by,
+        created_time,
+        updated_by,
+        updated_time,
+        del_flag,
+        dept_id,
+        floor_length,
+        floor_width,
+        background_img_id)values
+        <foreach collection="list" separator="," item="item">
+            (#{item.id},#{item.buildingId},#{item.floorName},#{item.type},#{item.floorNumber},
+            #{item.createdBy},#{item.createdTime},#{item.updatedBy},#{item.updatedTime},
+            #{item.delFlag},#{item.deptId},#{item.floorLength},#{item.floorWidth},#{item.backgroundImgId})
+        </foreach>
+    </insert>
+
+    <update id="updateBuildingFloorInfo" parameterType="BuildingFloorInfo">
+        update building_floor_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="buildingId != null">building_id = #{buildingId},</if>
+            <if test="floorName != null">floor_name = #{floorName},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="floorNumber != null">floor_number = #{floorNumber},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="createdTime != null">created_time = #{createdTime},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="floorLength != null">floor_length = #{floorLength},</if>
+            <if test="floorWidth != null">floor_width = #{floorWidth},</if>
+            <if test="backgroundImgId != null">background_img_id = #{backgroundImgId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBuildingFloorInfoById" parameterType="Long">
+        delete
+        from building_floor_info
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteBuildingFloorInfoByIds" parameterType="String">
+        delete from building_floor_info where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteBuildingFloorInfoByFloorId" parameterType="String">
+        update building_floor_info set del_flag='2' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <delete id="deleteBuildingFloorInfoByBuildingId">
+        delete
+        from building_floor_info
+        where building_id = #{buildingId}
+    </delete>
+
+</mapper>
