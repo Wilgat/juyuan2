@@ -18,7 +18,6 @@
     <description>Web服务入口 - 主应用模块</description>
 
     <dependencies>
-
         <!-- Spring Boot DevTools (for hot reload in dev) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -57,18 +56,43 @@
 
     <build>
         <finalName>${project.artifactId}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <excludes>
+                    <exclude>**/*.OPU</exclude>           <!-- exclude your binary file -->
+                    <exclude>**/*.bin</exclude>
+                    <exclude>**/*.keystore</exclude>
+                    <exclude>**/*.jks</exclude>
+                    <exclude>**/*.cer</exclude>
+                    <exclude>**/*.crt</exclude>
+                    <exclude>**/*.p12</exclude>
+                    <exclude>**/*.pfx</exclude>
+                    <!-- Add more extensions if you have other binaries -->
+                </excludes>
+            </resource>
 
+            <!-- Non-filtered resources (binary files copied as-is) -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*.OPU</include>
+                    <!-- add other binary extensions here if needed -->
+                </includes>
+            </resource>
+        </resources>
         <plugins>
-
-            <!-- Spring Boot repackage plugin (creates executable JAR) -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>  <!-- Matches root: 2.7.18 -->
+                <version>${spring-boot.version}</version>
                 <configuration>
                     <fork>true</fork>
-                <mainClass>com.ruoyi.RuoYiApplication</mainClass>   <!-- ← add this -->
-            </configuration>                <executions>
+                    <mainClass>com.ruoyi.RuoYiApplication</mainClass>
+                </configuration>
+                <executions>
                     <execution>
                         <goals>
                             <goal>repackage</goal>
@@ -76,9 +100,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- Compiler plugin is already managed in root - no need to repeat -->
-
         </plugins>
     </build>
 
