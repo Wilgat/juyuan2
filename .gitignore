@@ -44,3 +44,6 @@ nbdist/
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+
+# Config
+juyuan-admin/src/main/resources/*.yml
